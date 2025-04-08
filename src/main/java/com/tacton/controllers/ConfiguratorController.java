@@ -21,9 +21,12 @@ package com.tacton.controllers;
 import com.tacton.entities.User;
 import com.tacton.entities.cpqresponse.*;
 import com.tacton.services.NeedsParam;
+import com.tacton.services.cpq.CartItemService;
 import com.tacton.services.cpq.CartService;
 import com.tacton.services.cpq.CountryService;
 import com.tacton.services.cpq.CurrencyService;
+import com.tacton.services.cpq.ProductService;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +55,12 @@ public class ConfiguratorController {
 
     @Autowired
     private NeedsParam needsParam;
+    
+    @Autowired
+    private ProductService productService;
+    
+    @Autowired
+    private CartItemService cartItemService;
 
     @Value("${customer_self_service_api_key}")
     private String customer_self_service_api_key;
@@ -128,13 +137,15 @@ public class ConfiguratorController {
 
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String cart = user.getActiveCartId();
+        
+        final String productName = productService.getProductNameFromCPQApi(product);
 
         model.addAttribute("qty", 1);
         model.addAttribute("customer_self_service_api_key", customer_self_service_api_key);
         model.addAttribute("customer_self_service_api_url", customer_self_service_api_url);
         model.addAttribute("products_images_from_outside", products_images_from_outside);
         model.addAttribute("cpq_instance_url", cpq_instance_url);
-        model.addAttribute("product_name", product_name);
+        model.addAttribute("product_name", productName);
         model.addAttribute("product_id", product);
         model.addAttribute("catalogTab", catalog);
         model.addAttribute("activeCartId", cart);
@@ -171,13 +182,15 @@ public class ConfiguratorController {
                 .filter(item -> configId.equals(item.getId()))
                 .findAny()
                 .orElse(null);
+        
+        final String productName = cartItemService.getProductNameFromCPQApi(configId);
 
         model.addAttribute("qty", shoppingCartItem.getQty());
         model.addAttribute("customer_self_service_api_key", customer_self_service_api_key);
         model.addAttribute("customer_self_service_api_url", customer_self_service_api_url);
         model.addAttribute("products_images_from_outside", products_images_from_outside);
         model.addAttribute("cpq_instance_url", cpq_instance_url);
-        model.addAttribute("product_name", product_name);
+        model.addAttribute("product_name", productName);
         model.addAttribute("product_id", configId);
         model.addAttribute("catalogTab", "");
         model.addAttribute("activeCartId", cart);
